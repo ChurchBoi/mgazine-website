@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article Library</title>
+  <style>
+    :root {
+      --bg: #f7f5f0;
+      --surface: #fffefa;
+      --text: #24231f;
+      --muted: #77736a;
+      --line: #dedbd2;
+      --accent: #9a432e;
+      --accent-hover: #783321;
+      --shadow: 0 12px 30px rgba(48, 39, 25, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Georgia, "Times New Roman", serif;
+      background: var(--bg); color: var(--text); line-height: 1.65;
+    }
+    header {
+      background: var(--surface); color: var(--text); padding: 28px 20px 38px;
+      border-top: 5px solid var(--accent); border-bottom: 1px solid var(--line);
+    }
+    .header-inner, .container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .19em; font: 700 .72rem/1.4 Arial, sans-serif; color: var(--accent); }
+    h1 { margin: 14px 0 8px; font-size: clamp(2.7rem, 7vw, 5rem); line-height: .98; font-weight: 500; letter-spacing: -.045em; }
+    header p { max-width: 640px; margin: 14px 0 0; color: var(--muted); font-size: 1.08rem; }
+    main { padding: 0 0 60px; }
+    .toolbar {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 3px;
+      padding: 14px; display: grid; grid-template-columns: minmax(180px, 1fr) auto auto;
+      gap: 10px; align-items: center; margin-top: 22px;
+    }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px; border: 1px solid #d8d3c8; border-radius: 2px;
+      background: #fffefa; color: var(--text); font:  .95rem Arial, sans-serif;
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    button, .button {
+      border: 1px solid var(--accent); border-radius: 2px; padding: 11px 15px;
+      font: 700 .86rem Arial, sans-serif; letter-spacing: .01em; cursor: pointer;
+      background: var(--accent); color: white; transition: .15s ease;
+    }
+    button:hover, .button:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    button.secondary { background: #f1e8e2; color: var(--accent); border-color: #e5d4ca; }
+    button.secondary:hover { background: #e8d8ce; }
+    button.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+    button.ghost:hover { background: #f1eee7; }
+    .section-heading { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin: 40px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .section-heading h2 { margin: 0; font-size: 1.8rem; font-weight: 500; letter-spacing: -.025em; }
+    .muted { color: var(--muted); }
+    #articleCount { font: .78rem Arial, sans-serif; margin-top: 4px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .filter { background: transparent; color: #5e5a52; border: 1px solid var(--line); padding: 7px 12px; font-size: .8rem; }
+    .filter.active { background: var(--text); color: white; border-color: var(--text); }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 22px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 2px;
+      overflow: hidden; display: flex; flex-direction: column; min-width: 0;
+      box-shadow: none; transition: transform .18s, box-shadow .18s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .card-image { width: 100%; height: 205px; object-fit: cover; background: #e8e2d8; display: block; }
+    .image-placeholder {
+      height: 205px; display: grid; place-items: center; color: #8b786a;
+      background: linear-gradient(135deg, #e8e1d5, #f4eee4); font-size: 2.8rem; font-style: italic;
+    }
+    .card-body { padding: 21px 21px 19px; display: flex; flex-direction: column; flex: 1; }
+    .category { display: inline-flex; align-self: start; border-bottom: 1px solid #c99e8e; padding: 0 0 3px; color: var(--accent); font: 700 .7rem Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+    .card h3 { margin: 13px 0 9px; font-size: 1.55rem; font-weight: 500; line-height: 1.16; letter-spacing: -.025em; }
+    .card p { color: #625e56; margin: 0 0 22px; font-size: 1rem; line-height: 1.55; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e9e5dc; }
+    .card-footer .muted { font: .75rem Arial, sans-serif; }
+    .read-btn { padding: 9px 0 9px 8px; font-size: .78rem; background: transparent; border: 0; color: var(--accent); }
+    .read-btn:hover { background: transparent; color: var(--accent-hover); text-decoration: underline; }
+    .empty { text-align: center; padding: 50px 20px; background: var(--surface); border: 1px dashed #cfc8bb; border-radius: 2px; }
+    .empty h3 { margin-top: 0; font-weight: 500; font-size: 1.6rem; }
+    dialog { width: min(760px, calc(100% - 24px)); max-height: 88vh; overflow: auto; border: 1px solid var(--line); border-radius: 2px; padding: 0; background: var(--surface); color: var(--text); box-shadow: 0 25px 80px #0c153855; }
+    dialog::backdrop { background: #201c1799; backdrop-filter: blur(3px); }
+    .modal-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0; font-size: 1.25rem; font-weight: 500; }
+    .modal-content { padding: 26px; }
+    .article-content { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.08rem; line-height: 1.85; }
+    .article-image { width: 100%; max-height: 360px; object-fit: cover; border-radius: 2px; margin: 18px 0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field label { font: 700 .84rem Arial, sans-serif; }
+    .full { grid-column: 1 / -1; }
+    .form-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    footer { text-align: center; color: var(--muted); padding: 24px 16px 36px; font: .78rem Arial, sans-serif; border-top: 1px solid var(--line); }
+    @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .toolbar { grid-template-columns: 1fr 1fr; } .toolbar input { grid-column: 1 / -1; } }
+    @media (max-width: 560px) { .header-inner, .container { width: min(100% - 28px, 1160px); } header { padding: 24px 14px 30px; } .grid { grid-template-columns: 1fr; } .toolbar { grid-template-columns: 1fr; } .toolbar input { grid-column: auto; } .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .section-heading { align-items: start; flex-direction: column; } .card-image, .image-placeholder { height: 220px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="eyebrow">The independent journal · Est. 2026</div>
+      <h1>The Reading Room</h1>
+      <p>Ideas worth exploring. A curated collection of articles, notes, guides, and stories.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="toolbar" aria-label="Article tools">
+      <input id="searchInput" type="search" placeholder="Search articles..." aria-label="Search articles" />
+      <select id="sortSelect" aria-label="Sort articles">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="title">Title A–Z</option>
+      </select>
+      <button id="addArticleBtn">+ Add article</button>
+    </section>
+
+    <div class="section-heading">
+      <div>
+        <h2>Latest stories</h2>
+        <div class="muted" id="articleCount">0 articles</div>
+      </div>
+    </div>
+    <nav class="filters" id="categoryFilters" aria-label="Filter by category"></nav>
+    <section class="grid" id="articleGrid" aria-live="polite"></section>
+    <section class="empty" id="emptyState" hidden>
+      <h3>No articles found</h3>
+      <p class="muted">Try another search, or add an article to get started.</p>
+      <button id="emptyAddBtn">Add your first article</button>
+    </section>
+  </main>
+
+  <footer>The Reading Room · A personal publication · Saved in this browser on this device.</footer>
+
+  <dialog id="articleDialog">
+    <div class="modal-head">
+      <h2 id="articleDialogTitle">Read article</h2>
+      <button class="ghost" id="closeArticleBtn" aria-label="Close article">Close ✕</button>
+    </div>
+    <article class="modal-content" id="articleDetail"></article>
+  </dialog>
+
+  <dialog id="editorDialog">
+    <div class="modal-head">
+      <h2 id="editorTitle">Add an article</h2>
+      <button class="ghost" id="closeEditorBtn" aria-label="Close editor">Close ✕</button>
+    </div>
+    <div class="modal-content">
+      <form id="articleForm">
+        <input type="hidden" id="articleId" />
+        <div class="form-grid">
+          <div class="field full">
+            <label for="titleInput">Article title *</label>
+            <input id="titleInput" required maxlength="120" placeholder="e.g. A Beginner's Guide to..." />
+          </div>
+          <div class="field">
+            <label for="categoryInput">Category *</label>
+            <input id="categoryInput" required maxlength="40" list="categorySuggestions" placeholder="e.g. Guides" />
+            <datalist id="categorySuggestions">
+              <option value="Guides"></option><option value="Technology"></option>
+              <option value="Ideas"></option><option value="Research"></option>
+              <option value="Stories"></option>
+            </datalist>
+          </div>
+          <div class="field">
+            <label for="imageInput">Image URL (optional)</label>
+            <input id="imageInput" type="url" placeholder="https://example.com/image.jpg" />
+          </div>
+          <div class="field full">
+            <label for="summaryInput">Short description *</label>
+            <textarea id="summaryInput" required maxlength="300" rows="3" placeholder="A short preview shown on the card..."></textarea>
+          </div>
+          <div class="field full">
+            <label for="contentInput">Full article *</label>
+            <textarea id="contentInput" required rows="8" placeholder="Write your full article here..."></textarea>
+          </div>
+        </div>
+        <p class="muted" style="font-size:.85rem">Tip: use an image URL that is publicly accessible. Your article text is saved in this browser.</p>
+        <div class="form-actions">
+          <button type="button" class="ghost" id="cancelEditorBtn">Cancel</button>
+          <button type="submit">Save article</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = "article-library-v1";
+    const starterArticles = [
+      {
+        id: "sample-1",
+        title: "Welcome to Your Article Library",
+        category: "Guides",
+        summary: "This is a sample card. Replace it with your own article, image, and description.",
+        content: "Welcome!\\n\\nUse the “Add article” button to create your own article cards. Add a title, category, short description, optional image URL, and the full article text.\\n\\nYour articles are stored in this browser on this device. To keep a separate backup, use your browser's data export tools or copy your articles somewhere safe.",
+        image: "",
+        createdAt: Date.now()
+      },
+      {
+        id: "sample-2",
+        title: "Organize Ideas by Category",
+        category: "Ideas",
+        summary: "Categories and search make it easier for visitors to find the information they need.",
+        content: "Give each article a category, such as Guides, Research, Technology, Stories, or Ideas. Visitors can select a category to filter the cards, or search by words in the title, summary, category, and article body.",
+        image: "",
+        createdAt: Date.now() - 1000
+      },
+      {
+        id: "sample-3",
+        title: "Make It Your Own",
+        category: "Technology",
+        summary: "Change the colors, wording, and articles to make this library fit your project.",
+        content: "This website is built with HTML, CSS, and JavaScript in one file. You can customize its appearance and behavior. This version is a local prototype: articles are not automatically shared with other devices or visitors.",
+        image: "",
+        createdAt: Date.now() - 2000
+      }
+    ];
+
+    const $ = (selector) => document.querySelector(selector);
+    const grid = $("#articleGrid");
+    const filters = $("#categoryFilters");
+    const searchInput = $("#searchInput");
+    const sortSelect = $("#sortSelect");
+    const articleDialog = $("#articleDialog");
+    const editorDialog = $("#editorDialog");
+    let activeCategory = "All";
+    let articles = loadArticles();
+
+    function loadArticles() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (error) {
+        console.warn("Could not load saved articles:", error);
+      }
+      return starterArticles;
+    }
+
+    function saveArticles() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+        return true;
+      } catch (error) {
+        alert("Your browser could not save the articles. Storage may be disabled or full. Please copy your article text somewhere safe.");
+        console.error(error);
+        return false;
+      }
+    }
+
+    function escapeHTML(value = "") {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+
+    function safeImageURL(value) {
+      try {
+        const url = new URL(value);
+        return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+      } catch {
+        return "";
+      }
+    }
+
+    function getCategories() {
+      return ["All", ...new Set(articles.map(article => article.category.trim()).filter(Boolean).sort((a, b) => a.localeCompare(b)))];
+    }
+
+    function renderFilters() {
+      const categories = getCategories();
+      if (!categories.includes(activeCategory)) activeCategory = "All";
+      filters.innerHTML = categories.map(category =>
+        `<button class="filter ${category === activeCategory ? "active" : ""}" data-category="${escapeHTML(category)}">${escapeHTML(category)}</button>`
+      ).join("");
+      filters.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => {
+          activeCategory = button.dataset.category;
+          renderFilters();
+          renderArticles();
+        });
+      });
+    }
+
+    function filteredArticles() {
+      const query = searchInput.value.trim().toLowerCase();
+      let result = articles.filter(article => {
+        const matchesCategory = activeCategory === "All" || article.category === activeCategory;
+        const haystack = [article.title, article.category, article.summary, article.content].join(" ").toLowerCase();
+        return matchesCategory && haystack.includes(query);
+      });
+      const sort = sortSelect.value;
+      if (sort === "newest") result.sort((a, b) => b.createdAt - a.createdAt);
+      if (sort === "oldest") result.sort((a, b) => a.createdAt - b.createdAt);
+      if (sort === "title") result.sort((a, b) => a.title.localeCompare(b.title));
+      return result;
+    }
+
+    function renderArticles() {
+      const result = filteredArticles();
+      $("#articleCount").textContent = `${result.length} of ${articles.length} article${articles.length === 1 ? "" : "s"}`;
+      $("#emptyState").hidden = result.length > 0;
+      grid.hidden = result.length === 0;
+      grid.innerHTML = result.map(article => {
+        const image = safeImageURL(article.image || "");
+        const visual = image
+          ? `<img class="card-image" src="${escapeHTML(image)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'image-placeholder',textContent:'Article'}))">`
+          : `<div class="image-placeholder" aria-hidden="true">Aa</div>`;
+        return `
+          <article class="card">
+            ${visual}
+            <div class="card-body">
+              <span class="category">${escapeHTML(article.category)}</span>
+              <h3>${escapeHTML(article.title)}</h3>
+              <p>${escapeHTML(article.summary)}</p>
+              <div class="card-footer">
+                <span class="muted" style="font-size:.8rem">${new Date(article.createdAt).toLocaleDateString()}</span>
+                <button class="read-btn" data-read="${escapeHTML(article.id)}">Read article →</button>
+              </div>
+            </div>
+          </article>`;
+      }).join("");
+      grid.querySelectorAll("[data-read]").forEach(button => {
+        button.addEventListener("click", () => openArticle(button.dataset.read));
+      });
+    }
+
+    function openArticle(id) {
+      const article = articles.find(item => item.id === id);
+      if (!article) return;
+      $("#articleDialogTitle").textContent = article.title;
+      const image = safeImageURL(article.image || "");
+      $("#articleDetail").innerHTML = `
+        <span class="category">${escapeHTML(article.category)}</span>
+        ${image ? `<img class="article-image" src="${escapeHTML(image)}" alt="">` : ""}
+        <p class="muted">${new Date(article.createdAt).toLocaleDateString()}</p>
+        <h1 style="font-size:2rem;margin:12px 0">${escapeHTML(article.title)}</h1>
+        <p><strong>${escapeHTML(article.summary)}</strong></p>
+        <div class="article-content">${escapeHTML(article.content)}</div>
+        <div class="form-actions" style="justify-content:flex-start;margin-top:24px">
+          <button class="secondary" id="editThisArticle">Edit article</button>
+          <button class="ghost" id="deleteThisArticle">Delete article</button>
+        </div>`;
+      $("#editThisArticle").addEventListener("click", () => {
+        articleDialog.close();
+        openEditor(article.id);
+      });
+      $("#deleteThisArticle").addEventListener("click", () => {
+        if (confirm(`Delete “${article.title}”? This cannot be undone.`)) {
+          articles = articles.filter(item => item.id !== article.id);
+          if (saveArticles()) {
+            articleDialog.close();
+            renderFilters();
+            renderArticles();
+          }
+        }
+      });
+      articleDialog.showModal();
+    }
+
+    function openEditor(id = "") {
+      $("#articleForm").reset();
+      $("#articleId").value = "";
+      $("#editorTitle").textContent = id ? "Edit article" : "Add an article";
+      if (id) {
+        const article = articles.find(item => item.id === id);
+        if (!article) return;
+        $("#articleId").value = article.id;
+        $("#titleInput").value = article.title;
+        $("#categoryInput").value = article.category;
+        $("#imageInput").value = article.image || "";
+        $("#summaryInput").value = article.summary;
+        $("#contentInput").value = article.content;
+      }
+      editorDialog.showModal();
+      $("#titleInput").focus();
+    }
+
+    $("#addArticleBtn").addEventListener("click", () => openEditor());
+    $("#emptyAddBtn").addEventListener("click", () => openEditor());
+    $("#closeArticleBtn").addEventListener("click", () => articleDialog.close());
+    $("#closeEditorBtn").addEventListener("click", () => editorDialog.close());
+    $("#cancelEditorBtn").addEventListener("click", () => editorDialog.close());
+    searchInput.addEventListener("input", renderArticles);
+    sortSelect.addEventListener("change", renderArticles);
+
+    $("#articleForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const id = $("#articleId").value;
+      const existing = articles.find(article => article.id === id);
+      const imageRaw = $("#imageInput").value.trim();
+      const image = imageRaw ? safeImageURL(imageRaw) : "";
+      if (imageRaw && !image) {
+        alert("Please enter a valid image URL beginning with http:// or https://.");
+        return;
+      }
+      const article = {
+        id: id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+        title: $("#titleInput").value.trim(),
+        category: $("#categoryInput").value.trim(),
+        image,
+        summary: $("#summaryInput").value.trim(),
+        content: $("#contentInput").value.trim(),
+        createdAt: existing ? existing.createdAt : Date.now()
+      };
+      if (!article.title || !article.category || !article.summary || !article.content) {
+        alert("Please complete all required fields.");
+        return;
+      }
+      if (existing) {
+        articles = articles.map(item => item.id === id ? article : item);
+      } else {
+        articles.push(article);
+      }
+      if (saveArticles()) {
+        activeCategory = "All";
+        editorDialog.close();
+        renderFilters();
+        renderArticles();
+      }
+    });
+
+    renderFilters();
+    renderArticles();
+  </script>
+</body>
+</html>
